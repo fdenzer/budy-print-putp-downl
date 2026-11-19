@@ -81,6 +81,7 @@ export function VirtualPrinterCard({ printer, models, modelSerialPrefixes = {}, 
   const [localGcodeInjection, setLocalGcodeInjection] = useState(printer.gcode_injection ?? false);
   const [localFolderId, setLocalFolderId] = useState<number | null>(printer.library_folder_id ?? null);
   const [localRemoveAfterPrint, setLocalRemoveAfterPrint] = useState(printer.queue_remove_after_print ?? false);
+  const [localRespectReservations, setLocalRespectReservations] = useState(printer.respect_reservations ?? false);
   const [localTailscaleDisabled, setLocalTailscaleDisabled] = useState(printer.tailscale_disabled ?? true);
   const [showAccessCode, setShowAccessCode] = useState(false);
   const [pendingAction, setPendingAction] = useState<string | null>(null);
@@ -137,6 +138,7 @@ export function VirtualPrinterCard({ printer, models, modelSerialPrefixes = {}, 
       setLocalGcodeInjection(printer.gcode_injection ?? false);
       setLocalFolderId(printer.library_folder_id ?? null);
       setLocalRemoveAfterPrint(printer.queue_remove_after_print ?? false);
+      setLocalRespectReservations(printer.respect_reservations ?? false);
       setLocalTailscaleDisabled(printer.tailscale_disabled ?? true);
     }
   }, [printer, pendingAction]);
@@ -183,6 +185,7 @@ export function VirtualPrinterCard({ printer, models, modelSerialPrefixes = {}, 
       setLocalGcodeInjection(printer.gcode_injection ?? false);
       setLocalFolderId(printer.library_folder_id ?? null);
       setLocalRemoveAfterPrint(printer.queue_remove_after_print ?? false);
+      setLocalRespectReservations(printer.respect_reservations ?? false);
       setPendingAction(null);
     },
   });
@@ -639,6 +642,36 @@ export function VirtualPrinterCard({ printer, models, modelSerialPrefixes = {}, 
                     <span
                       className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full transition-transform ${
                         localGcodeInjection ? 'translate-x-5' : ''
+                      }`}
+                    />
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Reservation-aware dispatch - queue mode with auto-dispatch (#2785) */}
+            {localMode === 'queue' && localAutoDispatch && (
+              <div className="pt-2 border-t border-bambu-dark-tertiary">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="text-white text-sm font-medium">{t('virtualPrinter.respectReservations.title')}</div>
+                    <div className="text-[10px] text-bambu-gray">{t('virtualPrinter.respectReservations.description')}</div>
+                  </div>
+                  <button
+                    onClick={() => {
+                      const newVal = !localRespectReservations;
+                      setLocalRespectReservations(newVal);
+                      setPendingAction('respectReservations');
+                      updateMutation.mutate({ respect_reservations: newVal });
+                    }}
+                    disabled={pendingAction === 'respectReservations'}
+                    className={`relative w-10 h-5 rounded-full transition-colors flex-shrink-0 ${
+                      localRespectReservations ? 'bg-bambu-green' : 'bg-bambu-dark-tertiary'
+                    } ${pendingAction === 'respectReservations' ? 'opacity-50' : ''}`}
+                  >
+                    <span
+                      className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full transition-transform ${
+                        localRespectReservations ? 'translate-x-5' : ''
                       }`}
                     />
                   </button>
