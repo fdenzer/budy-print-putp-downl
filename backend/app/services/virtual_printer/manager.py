@@ -296,6 +296,7 @@ class VirtualPrinterInstance:
         queue_force_color_match: bool = False,
         save_ams_mapping: bool = False,
         gcode_injection: bool = False,
+        respect_reservations: bool = False,
         bind_ip: str = "",
         remote_interface_ip: str = "",
         base_dir: Path,
@@ -319,6 +320,7 @@ class VirtualPrinterInstance:
         self.queue_force_color_match = queue_force_color_match
         self.save_ams_mapping = save_ams_mapping
         self.gcode_injection = gcode_injection
+        self.respect_reservations = respect_reservations
         self.bind_ip = bind_ip
         self.remote_interface_ip = remote_interface_ip
         self._session_factory = session_factory
@@ -1402,6 +1404,10 @@ class VirtualPrinterInstance:
                             # gcode_snippets are configured for the target model, so it's
                             # effectively "inject when enabled AND snippets exist".
                             gcode_injection=self.gcode_injection,
+                            # Reservation-aware auto-dispatch (#2785). Only
+                            # meaningful with auto_dispatch: a manual-start item
+                            # already waits for the user.
+                            respect_reservations=self.auto_dispatch and self.respect_reservations,
                             # H2C rack-swap slicer pick (#1780). Captured above;
                             # stamped on every plate so a multi-plate Send All keeps
                             # the same nozzle pick across plates rather than only the
@@ -2020,6 +2026,7 @@ class VirtualPrinterManager:
                 or instance.queue_force_color_match != vp.queue_force_color_match
                 or instance.save_ams_mapping != vp.save_ams_mapping
                 or instance.gcode_injection != vp.gcode_injection
+                or instance.respect_reservations != vp.respect_reservations
                 or proxy_target_changed
             )
 
@@ -2060,6 +2067,7 @@ class VirtualPrinterManager:
                     queue_force_color_match=vp.queue_force_color_match,
                     save_ams_mapping=vp.save_ams_mapping,
                     gcode_injection=vp.gcode_injection,
+                    respect_reservations=vp.respect_reservations,
                     bind_ip=vp.bind_ip or "",
                     remote_interface_ip=vp.remote_interface_ip or "",
                     base_dir=self._base_dir,
@@ -2081,6 +2089,7 @@ class VirtualPrinterManager:
                     queue_force_color_match=vp.queue_force_color_match,
                     save_ams_mapping=vp.save_ams_mapping,
                     gcode_injection=vp.gcode_injection,
+                    respect_reservations=vp.respect_reservations,
                     bind_ip=vp.bind_ip or "",
                     remote_interface_ip=vp.remote_interface_ip or "",
                     base_dir=self._base_dir,
